@@ -36,22 +36,45 @@ class Quality:
     hd: str = "hd"
 
 async def _save_images(attachments: list[Attachment]):
-    # TODO:
     #  1. Create DIAL bucket client
-    #  2. Iterate through Images from attachments, download them and then save here
-    #  3. Print confirmation that image has been saved locally
-    raise NotImplementedError
+    async with DialBucketClient(base_url=DIAL_URL, api_key=API_KEY) as client:
+        #  2. Iterate through Images from attachments, download them and then save here
+        for attachment in attachments:
+            #  Download image from attachment.url
+            image_data = await client.get_file(attachment.url)
+            #  Save image locally with attachment.title as file name
+            with open(attachment.title, "wb") as image_file:
+                image_file.write(image_data)
+            #  3. Print confirmation that image has been saved locally
+            print(f"Image saved locally: {attachment.title}")
 
 
 def start() -> None:
-    # TODO:
     #  1. Create DialModelClient
+    client = DialModelClient(
+        endpoint=DIAL_CHAT_COMPLETIONS_ENDPOINT,
+        deployment_name="dall-e-3",
+        api_key=API_KEY
+    )
     #  2. Generate image for "Sunny day on Bali"
+    message = client.get_completion(
+        messages=[
+            Message(
+                role=Role.USER,
+                content="Generate an image of a sunny day on Bali with clear blue skies and palm trees.",
+            )
+        ],
+        custom_fields={
+            "quality": Quality.hd,
+            "size": Size.width_rectangle,
+            "style": Style.vivid,
+        }
+    )
     #  3. Get attachments from response and save generated message (use method `_save_images`)
+    attachments = message.custom_content.attachments
+    asyncio.run(_save_images(attachments))
     #  4. Try to configure the picture for output via `custom_fields` parameter.
     #    - Documentation: See `custom_fields`. https://dialx.ai/dial_api#operation/sendChatCompletionRequest
     #  5. Test it with the 'imagegeneration@005' (Google image generation model)
-    raise NotImplementedError
-
 
 start()

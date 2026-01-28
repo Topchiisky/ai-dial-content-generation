@@ -17,15 +17,45 @@ def start() -> None:
 
     # TODO:
     #  1. Create DialModelClient
+
+    client = DialModelClient(
+        endpoint=DIAL_CHAT_COMPLETIONS_ENDPOINT,
+        deployment_name="gpt-4o",
+        api_key=API_KEY
+    )
+
     #  2. Call client to analise image:
     #    - try with base64 encoded format
     #    - try with URL: https://a-z-animals.com/media/2019/11/Elephant-male-1024x535.jpg
+
+    client.get_completion(
+        messages=[
+            ContentedMessage(
+                role=Role.USER,
+                content=[
+                    TxtContent(
+                        text="Describe the images in detail."
+                    ),
+                    ImgContent(
+                        image_url=ImgUrl(
+                            url="data:image/png;base64," + base64_image
+                        )
+                    ),
+                    ImgContent(
+                        image_url=ImgUrl(
+                            url="https://a-z-animals.com/media/2019/11/Elephant-male-1024x535.jpg"
+                        )
+                    )
+                ]
+            )
+        ]
+    )
+
     #  ----------------------------------------------------------------------------------------------------------------
     #  Note: This approach embeds the image directly in the message as base64 data URL! Here we follow the OpenAI
     #        Specification but since requests are going to the DIAL Core, we can use different models and DIAL Core
     #        will adapt them to format Gemini or Anthropic is using. In case if we go directly to
     #        the https://api.anthropic.com/v1/complete we need to follow Anthropic request Specification (the same for gemini)
-    raise NotImplementedError
 
 
 start()
